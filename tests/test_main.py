@@ -164,6 +164,47 @@ def test_get_entries(
     assert entries == ["num-2", "num-6", "num-1"]
 
 
+@pytest.mark.parametrize(
+    ("zero_terminated", "stdin_content"),
+    [
+        (False, " num-2\n num-6 \n num-1"),
+        (False, " num-2\n num-6 \n num-1\n"),
+        (True, " num-2\0 num-6 \0 num-1"),
+        (True, " num-2\0 num-6 \0 num-1\0"),
+    ],
+)
+def test_get_entries_does_not_strip_whitespace_from_stdin(
+    zero_terminated: bool,
+    stdin_content: str,
+    mocker: MockerFixture,
+) -> None:
+    """Test that whitespace within entries read from stdin is preserved."""
+    args = TypedArgs(zero_terminated=zero_terminated)
+    mock_stdin = mocker.patch("sys.stdin.read", return_value=stdin_content)
+    entries = get_entries(args)
+    mock_stdin.assert_called_once_with()
+    assert entries == [" num-2", " num-6 ", " num-1"]
+
+
+def test_get_entries_does_not_strip_whitespace_from_command_line() -> None:
+    """Test that whitespace within entries given on the command line is preserved."""
+    args = TypedArgs(entries=[" num-2", " num-6 ", "num-1 "])
+    assert get_entries(args) == [" num-2", " num-6 ", "num-1 "]
+
+
+@pytest.mark.parametrize("zero_terminated", [False, True])
+def test_get_entries_with_empty_stdin(
+    zero_terminated: bool,
+    mocker: MockerFixture,
+) -> None:
+    """Test that empty stdin yields a single empty entry."""
+    args = TypedArgs(zero_terminated=zero_terminated)
+    mock_stdin = mocker.patch("sys.stdin.read", return_value="")
+    entries = get_entries(args)
+    mock_stdin.assert_called_once_with()
+    assert entries == [""]
+
+
 # Each test has an "example" version for demonstrative purposes,
 # and a test that uses the hypothesis module.
 

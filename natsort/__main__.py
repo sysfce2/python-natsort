@@ -260,14 +260,16 @@ def get_entries(args: TypedArgs) -> list[str]:
     """Determine which entries to sort."""
     # Read entries from command line or stdin?
     # If reading from stdin, are entries split on nulls or newlines?
+    # Note: entries are intentionally not stripped of whitespace. Leading
+    # whitespace affects the sort order, so removing it would be surprising,
+    # and stripping trailing whitespace is an unnecessary modification of the
+    # input. The one exception is the trailing separator(s) left by reading
+    # from stdin, which are removed before splitting so they do not produce
+    # empty entries.
     if len(args.entries) > 0:
-        entries = args.entries
-    else:
-        separator = "\0" if args.zero_terminated else "\n"
-        entries = sys.stdin.read().rstrip(separator).split(separator)
-
-    # Remove trailing whitespace from all the entries
-    return [e.strip() for e in entries]
+        return args.entries
+    separator = "\0" if args.zero_terminated else "\n"
+    return sys.stdin.read().rstrip(separator).split(separator)
 
 
 def keep_entry_range(
