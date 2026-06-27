@@ -20,6 +20,10 @@ Unreleased
 
 ### Fixed
 
+- CLI no longer strips leading and trailing whitespace from entries, which
+  could change the sort order
+  ([@baldassarreFe](https://github.com/baldassarreFe), issue
+  [#181](https://github.com/SethMMorton/natsort/issues/181))
 - Eliminated mypy failure related to string literals
 
 ### Removed
